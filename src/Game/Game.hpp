@@ -7,6 +7,7 @@
 #include <vector> // Nécessaire pour std::vector dans drawStats
 #include "./Object/Shop.hpp"
 #include "./Object/Object.hpp"
+#include "./Malus/Malus.hpp"
 
 enum CycleType {
     DAY,
@@ -40,6 +41,7 @@ class Game
 
     Tree _tree;
     Shop _shop;
+    std::vector<Malus> _malus;
 
     /* Rates */
     double malusRate;

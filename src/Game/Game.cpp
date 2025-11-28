@@ -14,6 +14,8 @@ Game::Game()
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 0.02, "Tree Size", 500);
+    Malus m1(MalusType::LEAF, 200, "Thief");
+
     money = 0;
     malusRate = 0.05;
     clientRate = 0.05;
@@ -25,6 +27,7 @@ Game::Game()
     _shop.addObject(obj2);
     dayWeek = 1;
     debt = 5000;
+    _malus.push_back(m1);
 }
 
 Game::~Game()
@@ -179,6 +182,25 @@ void Game::update()
     case NIGHT:
         if (_cycleTimer >= 10.0f)
         {
+            double ramdomMalus = rand() % RAND_MAX;
+            if (ramdomMalus < malusRate) {
+                Malus malus = _malus[rand() % _malus.size()];
+
+                switch (malus.getMalusType())
+                {
+                case MalusType::LEAF:
+                    _leafs -= malus.getPenalty();
+                    break;
+                case MalusType::MONEY:
+                    money -= malus.getPenalty();
+                    break;
+                case MalusType::TREE:
+                    _tree._height -= malus.getPenalty();
+                    break;
+                default:
+                    break;
+                }
+            }
             _cycleType = DAY;
             _cycleTimer = 0;
             dayWeek += 1;
