@@ -4,6 +4,13 @@
 #include "../Raylib/Raylib.hpp"
 #include <memory>
 #include <cstdlib>
+#include <vector> // Nécessaire pour std::vector dans drawStats
+
+enum CycleType {
+    DAY,
+    DUSK,  // Crépuscule
+    NIGHT
+};
 
 class Tree
 {
@@ -12,8 +19,6 @@ class Tree
     ~Tree() = default;
     long long _height;
     double _leafDropRate;
-
-  private:
 };
 
 class Game
@@ -23,7 +28,6 @@ class Game
     ~Game();
     void run();
 
-  protected:
   private:
     void handleEvents();
     void update();
@@ -45,7 +49,12 @@ class Game
     Rectangle _statArea;
     double _cps;
     int _clickCount;
-    float _timer;
+    
+    // Timers
+    float _timer;       // Timer pour le CPS (reset chaque 1s)
+    float _cycleTimer;  // Timer pour le Cycle (Jour/Nuit)
+
+    CycleType _cycleType;
 };
 
 #endif /* !GAME_HPP_ */
