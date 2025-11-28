@@ -43,10 +43,10 @@ void Game::handleEvents()
         if (randomChance <= _tree._leafDropRate) {
             _leafs++;
         } else {
-            // _leafs += 0; // Explicitement rien (échec du drop)
+            _leafs += 0;
         }
 
-        _clickCount++; // Le compteur de clic augmente qu'on ait la feuille ou non
+        _clickCount++;
     }
 
     if (CheckCollisionPointRec(mousePos, _shopArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {

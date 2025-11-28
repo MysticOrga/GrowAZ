@@ -30,7 +30,7 @@ class Game
     void draw();
     void drawStats();
 
-    Tree _tree; // <--- AJOUTE CECI : L'instance de l'arbre
+    Tree _tree;
 
     /* Rates */
     double malusRate;
