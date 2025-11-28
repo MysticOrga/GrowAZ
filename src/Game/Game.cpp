@@ -8,12 +8,17 @@
 #include "./Game/Game.hpp"
 #include <iostream>
 
-Game::Game() : _score(0), _cps(0), _clickCount(0), _timer(0),
+Game::Game() : _leafs(0), _cps(0), _clickCount(0), _timer(0),
                _shopArea{ 0, 0, 460, 1080 },
                _clickArea{ 460, 0, 1000, 1080 },
                _statArea{ 1460, 0, 460, 1080 }
 {
+    money = 0;
+    malusRate = 0.05;
+    clientRate = 0.05;
+    policeRate = 0.05;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
+    srand(time(NULL));
 }
 
 Game::~Game()
@@ -34,9 +39,16 @@ void Game::handleEvents()
     Vector2 mousePos = _raylib->getMousePosition();
 
     if (CheckCollisionPointRec(mousePos, _clickArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        _score++;
-        _clickCount++;
+        double randomChance = (double)rand() / RAND_MAX;
+        if (randomChance <= _tree._leafDropRate) {
+            _leafs++;
+        } else {
+            // _leafs += 0; // Explicitement rien (échec du drop)
+        }
+
+        _clickCount++; // Le compteur de clic augmente qu'on ait la feuille ou non
     }
+
     if (CheckCollisionPointRec(mousePos, _shopArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         std::cout << "Clicked inside the shop area!" << std::endl;
     }
@@ -44,7 +56,6 @@ void Game::handleEvents()
         std::cout << "Clicked inside the stats area!" << std::endl;
     }
 }
-
 void Game::update()
 {
     _timer += _raylib->getFrameTime();
@@ -75,10 +86,8 @@ void Game::draw()
 void Game::drawStats()
 {
     std::vector<std::string> stats;
-    stats.push_back("Score: " + std::to_string(_score));
+    stats.push_back("Score: " + std::to_string(_leafs));
     stats.push_back("Clicks per second: " + std::to_string(_cps));
-    // Vous pouvez ajouter autant de stats que vous voulez ici
-    // stats.push_back("Autre stat: " + std::to_string(valeur));
 
     int yPos = 100;
     int fontSize = 20;
