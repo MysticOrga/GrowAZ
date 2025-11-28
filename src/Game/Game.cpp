@@ -12,12 +12,16 @@ Game::Game()
     : _leafs(0), _cps(0), _clickCount(0), _timer(0), _cycleTimer(0), _cycleType(DAY), _shopArea{0, 0, 460, 1080},
       _clickArea{460, 0, 1000, 1080}, _statArea{1460, 0, 460, 1080}
 {
+    Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
+    Object obj2(StatBuff::TREE_SIZE, 0.02, "Tree Size", 500);
     money = 0;
     malusRate = 0.05;
     clientRate = 0.05;
     policeRate = 0.05;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
     srand(time(NULL));
+    _shop.addObject(obj1);
+    _shop.addObject(obj2);
 }
 
 Game::~Game()
@@ -60,6 +64,17 @@ void Game::handleEvents()
     if (CheckCollisionPointRec(mousePos, _statArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
         std::cout << "Clicked inside the stats area!" << std::endl;
+    }
+
+    int yPos = 100;
+    for (const auto& itemPair : _shop.getObjectList()) {
+        Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
+        if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            Object boughtObject;
+            std::cout << "Trying to buy: " << itemPair.first << std::endl;
+            _shop.buyObject(itemPair.first, boughtObject, money);
+        }
+        yPos += 60;
     }
 }
 void Game::update()
@@ -135,10 +150,28 @@ void Game::draw()
     _raylib->drawText("Click Here", _clickArea.x + (_clickArea.width - _raylib->measureText("Click Here", 40)) / 2, 20,
                       40, textColor);
     _raylib->drawText("Stat", _statArea.x + (_statArea.width - _raylib->measureText("Stat", 40)) / 2, 20, 40, BLACK);
+    
     drawStats();
+    drawShop();
 
     _raylib->endDrawing();
 }
+
+void Game::drawShop()
+{
+    int yPos = 100;
+    int fontSize = 20;
+    for (const auto& itemPair : _shop.getObjectList()) {
+        Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
+        _raylib->drawRectangleRec(itemButton, LIGHTGRAY);
+        _raylib->drawText(itemPair.first.c_str(), itemButton.x + 10, itemButton.y + 15, fontSize, BLACK);
+        std::string priceText = std::to_string(itemPair.second) + " $";
+        _raylib->drawText(priceText, itemButton.x + itemButton.width - _raylib->measureText(priceText, fontSize) - 10, itemButton.y + 15, fontSize, DARKGREEN);
+        yPos += 60; // Espace pour le prochain bouton
+    }
+}
+
+
 void Game::drawStats()
 {
     std::vector<std::string> stats;

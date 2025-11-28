@@ -5,6 +5,8 @@
 #include <memory>
 #include <cstdlib>
 #include <vector> // Nécessaire pour std::vector dans drawStats
+#include "./Object/Shop.hpp"
+#include "./Object/Object.hpp"
 
 enum CycleType {
     DAY,
@@ -33,8 +35,10 @@ class Game
     void update();
     void draw();
     void drawStats();
+    void drawShop();
 
     Tree _tree;
+    Shop _shop;
 
     /* Rates */
     double malusRate;
@@ -49,10 +53,9 @@ class Game
     Rectangle _statArea;
     double _cps;
     int _clickCount;
-    
-    // Timers
-    float _timer;       // Timer pour le CPS (reset chaque 1s)
-    float _cycleTimer;  // Timer pour le Cycle (Jour/Nuit)
+
+    float _timer;
+    float _cycleTimer;
 
     CycleType _cycleType;
 };
