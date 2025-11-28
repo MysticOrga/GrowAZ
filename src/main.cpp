@@ -1,18 +1,21 @@
-#include "raylib.h"
+/*
+** EPITECH PROJECT, 2024
+** GrosAZ
+** File description:
+** main
+*/
+
+#include "Game/Game.hpp"
+#include <iostream>
 
 int main(void)
 {
-    const int screenWidth = 1920;
-    const int screenHeight = 1080;
-
-    InitWindow(screenWidth, screenHeight, "Ma première fenêtre Raylib");
-    SetTargetFPS(90);
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-        DrawText("Bravo ! Vous avez initialisé votre projet Raylib !", 110, 280, 20, DARKGRAY);
-        EndDrawing();
+    try {
+        Game game;
+        game.run();
+    } catch (const std::exception &e) {
+        std::cerr << "An error occurred: " << e.what() << std::endl;
+        return 84;
     }
-    CloseWindow();
     return 0;
 }
