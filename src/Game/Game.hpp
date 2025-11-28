@@ -54,6 +54,7 @@ class Game
     Rectangle _statArea;
     double _cps;
     int _clickCount;
+    bool policeAlert;
 
     float _timer;
     float _cycleTimer;

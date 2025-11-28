@@ -17,7 +17,8 @@ Game::Game()
     money = 0;
     malusRate = 0.05;
     clientRate = 0.05;
-    policeRate = 0.05;
+    policeRate = 0.01;
+    policeAlert = false;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
     srand(time(NULL));
     _shop.addObject(obj1);
@@ -86,7 +87,7 @@ void Game::handleEvents()
     }
 
     if (CheckCollisionPointRec(mousePos, _shopArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-        _cycleType == DUSK)
+        _cycleType == DUSK && policeAlert == false)
     {
         std::cout << "Clicked inside the shop area!" << std::endl;
     }
@@ -100,7 +101,7 @@ void Game::handleEvents()
     {
         Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
         if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-            _cycleType == DUSK)
+            _cycleType == DUSK && policeAlert == false)
         {
             Object boughtObject;
             std::cout << "Trying to buy: " << itemPair.first << std::endl;
@@ -112,7 +113,7 @@ void Game::handleEvents()
 
     Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
     if (CheckCollisionPointRec(mousePos, sellButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-        _cycleType == DUSK)
+        _cycleType == DUSK && policeAlert == false)
     {
         if (_leafs > 0)
         {
@@ -142,6 +143,11 @@ void Game::update()
             _cycleType = DUSK;
             _cycleTimer = 0;
             std::cout << "Cycle: Passage au Crepuscule" << std::endl;
+        } else {
+            double randomPolice = (double)rand() / RAND_MAX;
+            if (randomPolice < policeRate + _tree._height + malusRate) {
+                policeAlert = true;
+            }
         }
         break;
 
@@ -160,6 +166,7 @@ void Game::update()
             _cycleType = DAY;
             _cycleTimer = 0;
             std::cout << "Cycle: Retour au Jour" << std::endl;
+            policeAlert = false;
         }
         break;
     }
@@ -232,6 +239,11 @@ void Game::drawStats()
     stats.push_back("Clicks per second: " + std::to_string(_cps));
     stats.push_back("Money: " + std::to_string(money) + " $");
     stats.push_back("Drop Rate: " + std::to_string(_tree._leafDropRate * 100) + " %");
+    if (policeAlert) {
+        stats.push_back("Police Alert: YES");
+    } else {
+        stats.push_back("Police Alert: NO");
+    }
 
     int yPos = 100;
     int fontSize = 20;
