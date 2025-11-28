@@ -20,7 +20,7 @@ public:
     Shop() = default;
     ~Shop() = default;
 
-    void addObject(std::string name, Object object);
+    void addObject(Object object);
 
     bool buyObject(std::string name, Object &obj, long long &money);
 
