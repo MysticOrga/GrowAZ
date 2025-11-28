@@ -20,6 +20,8 @@ public:
     Shop() = default;
     ~Shop() = default;
 
+    void addObject(StatBuff stat, double buff, const char *name, long long price);
+
     void addObject(Object object);
 
     bool buyObject(std::string name, Object &obj, long long &money);
