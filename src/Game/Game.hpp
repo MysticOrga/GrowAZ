@@ -36,6 +36,7 @@ class Game
     void draw();
     void drawStats();
     void drawShop();
+    void handleBuffing(const Object obj);
 
     Tree _tree;
     Shop _shop;
