@@ -23,6 +23,8 @@ Game::Game()
     srand(time(NULL));
     _shop.addObject(obj1);
     _shop.addObject(obj2);
+    dayWeek = 1;
+    debt = 5000;
 }
 
 Game::~Game()
@@ -143,6 +145,17 @@ void Game::update()
     case DAY:
         if (_cycleTimer >= 60.0f)
         {
+            if (dayWeek == 7) {
+                if (money < debt) {
+                    std::cout << "Vous n'avez pas remboursé votre dette! Game Over!" << std::endl;
+                    exit(0);
+                } else {
+                    money -= debt;
+                    std::cout << "Dette remboursée! Argent restant: " << money << " $" << std::endl;
+                    debt = rand() % 5000 + (5000 * _tree._height);
+                }
+                dayWeek = 1;
+            }
             _cycleType = DUSK;
             _cycleTimer = 0;
             std::cout << "Cycle: Passage au Crepuscule" << std::endl;
@@ -168,6 +181,7 @@ void Game::update()
         {
             _cycleType = DAY;
             _cycleTimer = 0;
+            dayWeek += 1;
             std::cout << "Cycle: Retour au Jour" << std::endl;
             policeAlert = false;
         }
@@ -238,7 +252,9 @@ void Game::drawShop()
 void Game::drawStats()
 {
     std::vector<std::string> stats;
-    stats.push_back("Score: " + std::to_string(_leafs));
+    stats.push_back("Debt: " + std::to_string(debt) + " $");
+    stats.push_back("Day: " + std::to_string(dayWeek));
+    stats.push_back("Leaf: " + std::to_string(_leafs));
     stats.push_back("Clicks per second: " + std::to_string(_cps));
     stats.push_back("Money: " + std::to_string(money) + " $");
     stats.push_back("Drop Rate: " + std::to_string(_tree._leafDropRate * 100) + " %");

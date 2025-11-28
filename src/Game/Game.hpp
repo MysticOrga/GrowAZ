@@ -55,6 +55,8 @@ class Game
     double _cps;
     int _clickCount;
     bool policeAlert;
+    long long debt;
+    int dayWeek;
 
     float _timer;
     float _cycleTimer;
