@@ -72,6 +72,9 @@ void Game::handleEvents()
     if (CheckCollisionPointRec(mousePos, _clickArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
         _cycleType == DAY)
     {
+        if (policeAlert) {
+            _leafs = 0;
+        }
         double randomChance = (double)rand() / RAND_MAX;
         _cycleTimer += 2.0f;
         if (randomChance <= (_tree._leafDropRate + _tree._height))
@@ -101,7 +104,7 @@ void Game::handleEvents()
     {
         Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
         if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-            _cycleType == DUSK && policeAlert == false)
+            _cycleType == DUSK)
         {
             Object boughtObject;
             std::cout << "Trying to buy: " << itemPair.first << std::endl;
