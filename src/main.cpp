@@ -1,7 +1,8 @@
-/*
-** EPITECH PROJECT, 2025
-** GrosAZ
-** File description:
-** main
-*/
+#include "Game.hpp"
 
+int main()
+{
+    Game game(800, 600);
+    game.run();
+    return 0;
+}
