@@ -42,10 +42,11 @@ void Game::handleEvents()
 {
     Vector2 mousePos = _raylib->getMousePosition();
 
-    if (CheckCollisionPointRec(mousePos, _clickArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    if (CheckCollisionPointRec(mousePos, _clickArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) && _cycleType == DAY)
     {
         double randomChance = (double)rand() / RAND_MAX;
-        if (randomChance <= _tree._leafDropRate)
+        _cycleTimer += 2.0f;
+        if (randomChance <= (_tree._leafDropRate + _tree._height))
         {
             _leafs++;
         }
@@ -57,7 +58,7 @@ void Game::handleEvents()
         _clickCount++;
     }
 
-    if (CheckCollisionPointRec(mousePos, _shopArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    if (CheckCollisionPointRec(mousePos, _shopArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) && _cycleType == DUSK)
     {
         std::cout << "Clicked inside the shop area!" << std::endl;
     }
@@ -69,7 +70,7 @@ void Game::handleEvents()
     int yPos = 100;
     for (const auto& itemPair : _shop.getObjectList()) {
         Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
-        if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) && _cycleType == DUSK) {
             Object boughtObject;
             std::cout << "Trying to buy: " << itemPair.first << std::endl;
             _shop.buyObject(itemPair.first, boughtObject, money);
@@ -78,7 +79,7 @@ void Game::handleEvents()
     }
 
     Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
-    if (CheckCollisionPointRec(mousePos, sellButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    if (CheckCollisionPointRec(mousePos, sellButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) && _cycleType == DUSK) {
         if (_leafs > 0) {
             _leafs--;
             money += 100;
@@ -101,7 +102,7 @@ void Game::update()
     switch (_cycleType)
     {
     case DAY:
-        if (_cycleTimer >= 180.0f)
+        if (_cycleTimer >= 60.0f)
         {
             _cycleType = DUSK;
             _cycleTimer = 0;
@@ -110,7 +111,7 @@ void Game::update()
         break;
 
     case DUSK:
-        if (_cycleTimer >= 30.0f)
+        if (_cycleTimer >= 45.0f)
         {
             _cycleType = NIGHT;
             _cycleTimer = 0;
@@ -163,7 +164,6 @@ void Game::draw()
     drawStats();
     drawShop();
 
-    // Dessin du bouton de vente
     Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
     Color buttonColor = (_leafs > 0) ? LIME : GRAY;
     _raylib->drawRectangleRec(sellButton, buttonColor);
@@ -194,6 +194,7 @@ void Game::drawStats()
     stats.push_back("Score: " + std::to_string(_leafs));
     stats.push_back("Clicks per second: " + std::to_string(_cps));
     stats.push_back("Money: " + std::to_string(money) + " $");
+    stats.push_back("Drop Rate: " + std::to_string(_tree._leafDropRate * 100) + " %");
 
     int yPos = 100;
     int fontSize = 20;
