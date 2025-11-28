@@ -23,7 +23,7 @@ class Object
 public:
     Object() = default;
 
-    Object(StatBuff stat, double buff, const char *name, std::size_t price)
+    Object(StatBuff stat, double buff, const char *name, long long price)
         : _stat(stat), _buff(buff), _name(name), _price(price) {}
 
     ~Object() = default;

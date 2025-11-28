@@ -19,6 +19,14 @@ bool Shop::buyObject(std::string name, Object &obj, long long &money)
     return true;
 }
 
+void Shop::addObject(StatBuff stat, double buff, const char *name, long long price)
+{
+    Object obj(stat, buff, name, price);
+
+    _ObjectList[name] = obj;
+    _ShopList.push_back(std::make_pair(obj.getName(), obj.getPrice()));
+}
+
 void Shop::addObject(Object object)
 {
     _ObjectList[object.getName()] = object;
