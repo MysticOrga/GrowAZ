@@ -52,6 +52,11 @@ void Raylib::clearBackground(Color color)
     ClearBackground(color);
 }
 
+float Raylib::getFrameTime() const
+{
+    return GetFrameTime();
+}
+
 void Raylib::loadTexture(const std::string &name, const std::string &fileName)
 {
     if (_textures.find(name) != _textures.end()) {
@@ -148,4 +153,14 @@ void Raylib::setSoundVolume(const std::string& name, float volume)
 void Raylib::drawText(const std::string &text, int posX, int posY, int fontSize, Color color)
 {
     DrawText(text.c_str(), posX, posY, fontSize, color);
+}
+
+void Raylib::drawRectangleRec(Rectangle rec, Color color)
+{
+    DrawRectangleRec(rec, color);
+}
+
+int Raylib::measureText(const std::string &text, int fontSize)
+{
+    return MeasureText(text.c_str(), fontSize);
 }

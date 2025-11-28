@@ -23,6 +23,7 @@ class Raylib {
         void beginDrawing();
         void endDrawing();
         void clearBackground(Color color);
+        float getFrameTime() const;
 
         // Texture/Sprite management
         void loadTexture(const std::string &name, const std::string &fileName);
@@ -45,6 +46,8 @@ class Raylib {
 
         //Draw Text
         void drawText(const std::string &text, int posX, int posY, int fontSize, Color color);
+        void drawRectangleRec(Rectangle rec, Color color);
+        int measureText(const std::string &text, int fontSize);
 
     protected:
     private:
