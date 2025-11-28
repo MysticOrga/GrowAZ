@@ -38,6 +38,32 @@ void Game::run()
     }
 }
 
+void Game::handleBuffing(const Object obj)
+{
+    switch (obj.getStatToBuff())
+    {
+        case StatBuff::LEAF_DROP:
+            _tree._leafDropRate += obj.getBuff();
+            std::cout << "Leaf drop: " << _tree._leafDropRate << std::endl;
+            break;
+        case StatBuff::TREE_SIZE:
+            _tree._height += obj.getBuff();
+            std::cout << "tree size: " << _tree._height << std::endl;
+            break;
+        case StatBuff::CLIENT_DROP:
+            clientRate += obj.getBuff();
+            break;
+        case StatBuff::MALUS_DROP:
+            malusRate += obj.getBuff();
+            break;
+        case StatBuff::COPS_DROP:
+            policeRate += obj.getBuff();
+            break;
+        default:
+            break;
+    }
+}
+
 void Game::handleEvents()
 {
     Vector2 mousePos = _raylib->getMousePosition();
@@ -73,7 +99,8 @@ void Game::handleEvents()
         if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) && _cycleType == DUSK) {
             Object boughtObject;
             std::cout << "Trying to buy: " << itemPair.first << std::endl;
-            _shop.buyObject(itemPair.first, boughtObject, money);
+            if (_shop.buyObject(itemPair.first, boughtObject, money))
+                this->handleBuffing(boughtObject);
         }
         yPos += 60;
     }
