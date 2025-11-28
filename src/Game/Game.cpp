@@ -76,6 +76,15 @@ void Game::handleEvents()
         }
         yPos += 60;
     }
+
+    Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
+    if (CheckCollisionPointRec(mousePos, sellButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (_leafs > 0) {
+            _leafs--;
+            money += 100;
+            std::cout << "Vendu 1 feuille pour 100$. Argent actuel: " << money << std::endl;
+        }
+    }
 }
 void Game::update()
 {
@@ -150,9 +159,17 @@ void Game::draw()
     _raylib->drawText("Click Here", _clickArea.x + (_clickArea.width - _raylib->measureText("Click Here", 40)) / 2, 20,
                       40, textColor);
     _raylib->drawText("Stat", _statArea.x + (_statArea.width - _raylib->measureText("Stat", 40)) / 2, 20, 40, BLACK);
-    
+
     drawStats();
     drawShop();
+
+    // Dessin du bouton de vente
+    Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
+    Color buttonColor = (_leafs > 0) ? LIME : GRAY;
+    _raylib->drawRectangleRec(sellButton, buttonColor);
+    std::string sellText = "Vendre Feuille (100)";
+    int textWidth = _raylib->measureText(sellText, 20);
+    _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
 
     _raylib->endDrawing();
 }
@@ -167,16 +184,16 @@ void Game::drawShop()
         _raylib->drawText(itemPair.first.c_str(), itemButton.x + 10, itemButton.y + 15, fontSize, BLACK);
         std::string priceText = std::to_string(itemPair.second) + " $";
         _raylib->drawText(priceText, itemButton.x + itemButton.width - _raylib->measureText(priceText, fontSize) - 10, itemButton.y + 15, fontSize, DARKGREEN);
-        yPos += 60; // Espace pour le prochain bouton
+        yPos += 60;
     }
 }
-
 
 void Game::drawStats()
 {
     std::vector<std::string> stats;
     stats.push_back("Score: " + std::to_string(_leafs));
     stats.push_back("Clicks per second: " + std::to_string(_cps));
+    stats.push_back("Money: " + std::to_string(money) + " $");
 
     int yPos = 100;
     int fontSize = 20;
