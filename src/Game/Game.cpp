@@ -213,6 +213,11 @@ void Game::update()
     float dt = _raylib->getFrameTime();
     if (_gameState == GameState::MENU || _gameState == GameState::PAUSED)
         return;
+    if (IsMusicReady(game_music)) {
+        PlayMusicStream(game_music);
+    } else {
+        std::cerr << "Failed to load menu music." << std::endl;
+    }
     _timer += dt;
     if (_timer >= 1.0f)
     {
@@ -306,6 +311,9 @@ void Game::draw()
     _raylib->clearBackground(RAYWHITE);
     BeginMode2D(_screenCamera);
 
+    if (IsMusicReady(game_music)) {
+        UpdateMusicStream(game_music);
+    }
     if (_gameState == GameState::MENU) {
         drawMenu();
         EndMode2D();

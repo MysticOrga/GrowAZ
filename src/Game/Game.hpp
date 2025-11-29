@@ -116,6 +116,7 @@ class Game
     float _shakeIntensity;
 
     Music menu_music;
+    Music game_music;
 };
 
 #endif /* !GAME_HPP_ */
