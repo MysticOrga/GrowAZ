@@ -373,7 +373,7 @@ void Game::draw()
         clickAreaColor = ORANGE;
         break;
     case NIGHT:
-        clickAreaColor = DARKBLUE;
+        clickAreaColor = BLACK;
         break;
     default:
         clickAreaColor = LIGHTGRAY;
@@ -381,8 +381,8 @@ void Game::draw()
     }
 
     _raylib->drawRectangleRec(_clickArea, clickAreaColor);
-    _raylib->drawRectangleRec(_shopArea, BEIGE);
-    _raylib->drawRectangleRec(_statArea, RED);
+    _raylib->drawRectangleRec(_shopArea, DARKGREEN);
+    _raylib->drawRectangleRec(_statArea, DARKGREEN);
     Color pauseBtnColor = _pauseButtonHovered ? DARKGRAY : GRAY;
     std::string pauseLabel = (_gameState == GameState::PAUSED) ? "Resume" : "Pause";
     _raylib->drawRectangleRec(_pauseButton, pauseBtnColor);
