@@ -23,14 +23,14 @@ Game::Game()
     clientRate = 0.05;
     policeRate = 0.01;
     policeAlert = false;
-    _tree._height = 10;
-    _tree._leafDropRate = 0.1;
+    _tree._height = 1;
+    _tree._leafDropRate = 0.01;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
     srand(time(NULL));
     _shop.addObject(obj1);
     _shop.addObject(obj2);
     dayWeek = 1;
-    debt = 5000;
+    debt = 50000;
     _malus.push_back(m1);
     _sellButtonHovered = false;
     _particleSystem.init(500);
@@ -147,10 +147,11 @@ void Game::handleEvents()
         if (policeAlert) {
             _leafs = 0;
         }
-        double randomChance = (double)GetRandomValue(0, this->_tree._height) * _tree._leafDropRate;
-        std::cout << "randomchance: " << randomChance << std::endl;
+        double randomChance = 1 - pow(1 - _tree._leafDropRate, _tree._height);
+        double test = (double)rand() / RAND_MAX;
+        std::cout << "test and rdc: " << test << randomChance << std::endl;
         _cycleTimer += 0.1f;
-        if (randomChance <= _tree._leafDropRate)
+        if (test <= randomChance)
         {
             _leafs++;
             _particleSystem.spawn(mousePos, 10);
