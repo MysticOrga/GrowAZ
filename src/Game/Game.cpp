@@ -48,12 +48,17 @@ Game::Game()
     _shakeIntensity = 0.0f;
     InitAudioDevice();
     menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
-    PlayMusicStream(menu_music);
+    if (IsMusicReady(menu_music)) {
+        PlayMusicStream(menu_music);
+    } else {
+        std::cerr << "Failed to load menu music." << std::endl;
+    }
 }
 
 Game::~Game()
 {
-    UnloadMusicStream(menu_music);
+    if (IsMusicReady(menu_music))
+        UnloadMusicStream(menu_music);
     CloseAudioDevice();
 }
 
@@ -444,7 +449,9 @@ void Game::drawMenu()
     int titlePosX = (1920 - _raylib->measureText(title, titleSize)) / 2;
     _raylib->drawText(title, titlePosX, 180, titleSize, DARKGREEN);
 
-    UpdateMusicStream(menu_music);
+    if (IsMusicReady(menu_music)) {
+        UpdateMusicStream(menu_music);
+    }
     auto drawButton = [&](const Rectangle &rect, const std::string &label) {
         bool hovered = CheckCollisionPointRec(mousePos, rect);
         Color buttonColor = hovered ? LIME : LIGHTGRAY;
