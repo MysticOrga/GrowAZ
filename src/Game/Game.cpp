@@ -16,7 +16,7 @@ Game::Game()
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 1, "Tree Size", 500);
-    Malus m1(MalusType::LEAF, 200, "Thief");
+    Malus m1(MalusType::MONEY, 200, "Thief");
 
     money = 0;
     malusRate = 0.05;
@@ -24,7 +24,7 @@ Game::Game()
     policeRate = 0.01;
     policeAlert = false;
     _tree._height = 1;
-    _tree._leafDropRate = 0.01;
+    _tree._leafDropRate = 0.1;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
     srand(time(NULL));
     _shop.addObject(obj1);
@@ -244,7 +244,7 @@ void Game::update()
                 } else {
                     money -= debt;
                     std::cout << "Dette remboursée! Argent restant: " << money << " $" << std::endl;
-                    debt = rand() % 5000 + (5000 * _tree._height);
+                    debt = rand() % 50000 + (50000 * _tree._height);
                 }
                 dayWeek = 1;
             }
@@ -271,8 +271,8 @@ void Game::update()
     case NIGHT:
         if (_cycleTimer >= 10.0f)
         {
-            double ramdomMalus = rand() % RAND_MAX;
-            if (ramdomMalus < malusRate) {
+            double ramdomMalus = (double)rand() / RAND_MAX;
+            if (0.75 < ramdomMalus) {
                 Malus malus = _malus[rand() % _malus.size()];
 
                 switch (malus.getMalusType())
