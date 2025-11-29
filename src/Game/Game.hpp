@@ -32,6 +32,11 @@ class Tree
     double _leafDropRate;
 };
 
+struct FallingLeaf {
+    Vector2 pos;
+    float speed;
+};
+
 struct SaveData {
     long long money;
     long long leafs;
@@ -66,6 +71,15 @@ class Game
     void triggerShake(float intensity, float duration);
     void saveGame(const std::string &filePath = "save.txt") const;
     void loadGame(const std::string &filePath = "save.txt");
+    void triggerRain(float durationSeconds);
+    void updateRain(float dt);
+    void drawRain();
+
+    std::vector<FallingLeaf> _rainLeaves;
+    float _rainDuration;    // Combien de temps la pluie doit durer
+    float _rainTimer;       // Compteur de temps actuel
+    bool _isRaining;        // Est-ce que la pluie est active ?
+    Texture2D _leafTexture;
 
     Tree _tree;
     Shop _shop;
