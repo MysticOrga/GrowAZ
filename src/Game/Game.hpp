@@ -84,6 +84,7 @@ class Game
     Tree _tree;
     Shop _shop;
     std::vector<Malus> _malus;
+    std::vector<Object> _employee;
 
     /* Rates */
     double malusRate;

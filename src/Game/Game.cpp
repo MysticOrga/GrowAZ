@@ -16,6 +16,7 @@ Game::Game()
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 1, "Tree Size", 500);
+    Object emp1(StatBuff::AUTO_CLICK, 0.01, "Collector", 650);
     Malus m1(MalusType::LEAF, 200, "Thief");
 
     money = 0;
@@ -29,6 +30,7 @@ Game::Game()
     srand(time(NULL));
     _shop.addObject(obj1);
     _shop.addObject(obj2);
+    _shop.addObject(emp1);
     dayWeek = 1;
     debt = 50000;
     _malus.push_back(m1);
@@ -96,6 +98,9 @@ void Game::handleBuffing(const Object obj)
         break;
     case StatBuff::COPS_DROP:
         policeRate += obj.getBuff();
+        break;
+    case StatBuff::AUTO_CLICK:
+        _employee.push_back(obj);
         break;
     default:
         break;
@@ -253,25 +258,27 @@ void Game::update()
     case DAY:
         if (_cycleTimer >= 60.0f)
         {
-            if (dayWeek == 7) {
-                if (money < debt) {
-                    std::cout << "Vous n'avez pas remboursé votre dette! Game Over!" << std::endl;
-                    exit(0);
-                } else {
-                    money -= debt;
-                    std::cout << "Dette remboursée! Argent restant: " << money << " $" << std::endl;
-                    debt = rand() % 5000 + (5000 * _tree._height);
-                }
-                dayWeek = 1;
-            }
             _cycleType = DUSK;
             _cycleTimer = 0;
             std::cout << "Cycle: Passage au Crepuscule" << std::endl;
         } else {
-            double randomPolice = rand() % RAND_MAX;
-            if (randomPolice < policeRate + _tree._height + malusRate) {
+            int randomPolice = GetRandomValue(0, _tree._height * 2);
+            if (randomPolice < (_tree._height - 50) * policeRate) {
                 policeAlert = true;
             }
+            if (!policeAlert)
+            {
+                for (Object emp: _employee)
+                {
+                    double rnd = (double)rand() / RAND_MAX;
+                    if (rnd < emp.getBuff())
+                    {
+                        triggerRain(3.0f);
+                        _leafs++;
+                    }
+                }
+            }
+
         }
         break;
 
@@ -287,8 +294,8 @@ void Game::update()
     case NIGHT:
         if (_cycleTimer >= 10.0f)
         {
-            double ramdomMalus = rand() % RAND_MAX;
-            if (ramdomMalus < malusRate) {
+            int ramdomMalus = GetRandomValue(0, _tree._height * 2);
+            if (ramdomMalus < (_tree._height - 25) * malusRate) {
                 Malus malus = _malus[rand() % _malus.size()];
 
                 switch (malus.getMalusType())
@@ -306,9 +313,33 @@ void Game::update()
                     break;
                 }
             }
+            for (Object emp: _employee)
+            {
+                money -= emp.getPrice();
+            }
             _cycleType = DAY;
             _cycleTimer = 0;
             dayWeek += 1;
+            if (dayWeek >= 7) {
+                if (money < debt) {
+                    std::cout << "Vous n'avez pas remboursé votre dette! Game Over!" << std::endl;
+                    _gameState = GameState::MENU;
+                    money = 0;
+                    _leafs = 0;
+                    debt = 50000;
+                    _tree._leafDropRate = 0.01;
+                    _tree._height = 1;
+                    _employee.clear();
+                    dayWeek = 1;
+                    policeAlert = false;
+                    return;
+                } else {
+                    money -= debt;
+                    std::cout << "Dette remboursée! Argent restant: " << money << " $" << std::endl;
+                    debt = rand() % 5000 + (5000 * _tree._height);
+                }
+                dayWeek = 1;
+            }
             std::cout << "Cycle: Retour au Jour" << std::endl;
             policeAlert = false;
         }
