@@ -571,9 +571,10 @@ void Game::triggerRain(float durationSeconds)
 {
     _rainDuration = durationSeconds;
     _rainTimer = 0.0f;
+    if (_isRaining == true)
+        return;
     _isRaining = true;
 
-    // On reset toutes les feuilles au-dessus de l'écran pour commencer la chute
     for (auto &leaf : _rainLeaves) {
         leaf.pos.x = (float)(rand() % 1920); // Largeur écran
         leaf.pos.y = (float)(rand() % 1080 - 1080); // Position aléatoire au-dessus
