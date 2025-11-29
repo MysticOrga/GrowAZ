@@ -47,6 +47,7 @@ class Game
     void drawMenu();
     void drawPauseOverlay();
     void handleBuffing(const Object obj);
+    void triggerShake(float intensity, float duration);
 
     Tree _tree;
     Shop _shop;
@@ -88,6 +89,10 @@ class Game
     ParticleSystem _particleSystem;
     bool _pauseButtonHovered;
     bool _pauseQuitButtonHovered;
+
+    Camera2D _screenCamera;
+    float _shakeTimer;
+    float _shakeIntensity;
 };
 
 #endif /* !GAME_HPP_ */

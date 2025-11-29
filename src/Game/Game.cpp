@@ -37,6 +37,12 @@ Game::Game()
     _pauseButtonHovered = false;
     _pauseQuitButton = {(float)((1920 - 200) / 2), 560, 200, 60};
     _pauseQuitButtonHovered = false;
+    _screenCamera.offset = { 0.0f, 0.0f };
+    _screenCamera.target = { 0.0f, 0.0f };
+    _screenCamera.rotation = 0.0f;
+    _screenCamera.zoom = 1.0f;
+    _shakeTimer = 0.0f;
+    _shakeIntensity = 0.0f;
 }
 
 Game::~Game()
@@ -127,8 +133,9 @@ void Game::handleEvents()
         _cycleTimer += 0.1f;
         if (randomChance <= _tree._leafDropRate)
         {
-            _particleSystem.spawn(mousePos, 10);
             _leafs++;
+            _particleSystem.spawn(mousePos, 10);
+            triggerShake(5.0f, 0.2f);
         }
         else
         {
@@ -194,6 +201,17 @@ void Game::update()
     }
     _cycleTimer += dt;
     _particleSystem.update(dt);
+    if (_shakeTimer > 0) {
+        _shakeTimer -= dt;
+
+        float offsetX = (float)GetRandomValue(-_shakeIntensity, _shakeIntensity);
+        float offsetY = (float)GetRandomValue(-_shakeIntensity, _shakeIntensity);
+
+        _screenCamera.offset = { offsetX, offsetY };
+    } else {
+        _screenCamera.offset = { 0.0f, 0.0f };
+        _shakeTimer = 0;
+    }
     switch (_cycleType)
     {
     case DAY:
@@ -265,11 +283,12 @@ void Game::draw()
 {
     _raylib->beginDrawing();
     _raylib->clearBackground(RAYWHITE);
+    BeginMode2D(_screenCamera);
 
     if (_gameState == GameState::MENU) {
         drawMenu();
+        EndMode2D();
         _raylib->endDrawing();
-        return;
     }
 
     Color clickAreaColor;
@@ -319,11 +338,12 @@ void Game::draw()
     _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
     _particleSystem.draw();
 
+    EndMode2D();
+
     if (_gameState == GameState::PAUSED) {
         drawPauseOverlay();
     }
-
-    _raylib->endDrawing();
+    if (_gameState != GameState::MENU) _raylib->endDrawing();
 }
 
 void Game::drawShop()
@@ -412,4 +432,10 @@ void Game::drawMenu()
 
     drawButton(_playButton, "Jouer");
     drawButton(_quitButton, "Quitter");
+}
+
+void Game::triggerShake(float intensity, float duration)
+{
+    _shakeIntensity = intensity; // Force du tremblement en pixels (ex: 5.0f)
+    _shakeTimer = duration;      // Durée en secondes (ex: 0.2f)
 }
