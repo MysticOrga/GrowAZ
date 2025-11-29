@@ -51,6 +51,14 @@ Game::Game()
     // menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
     // PlayMusicStream(menu_music);
     this->_raylib->loadTexture("tree", "../SpriteSheet/tree.png");
+    _leafTexture = LoadTexture("../SpriteSheet/falling_leaf.png");
+    // 2. On prépare un pool de 200 feuilles (elles sont invisibles pour l'instant)
+    for (int i = 0; i < 200; i++) {
+        FallingLeaf leaf;
+        leaf.pos = { -100.0f, -100.0f }; // Hors écran
+        leaf.speed = 0;
+        _rainLeaves.push_back(leaf);
+    }
 }
 
 Game::~Game()
@@ -161,6 +169,7 @@ void Game::handleEvents()
             _leafs++;
             _particleSystem.spawn(mousePos, 10);
             triggerShake(5.0f, 0.2f);
+            triggerRain(5.0f);
         }
         else
         {
@@ -217,11 +226,11 @@ void Game::update()
     float dt = _raylib->getFrameTime();
     if (_gameState == GameState::MENU || _gameState == GameState::PAUSED)
         return;
-    if (IsMusicReady(game_music)) {
-        PlayMusicStream(game_music);
-    } else {
-        std::cerr << "Failed to load menu music." << std::endl;
-    }
+    // if (IsMusicReady(game_music)) {
+    //     PlayMusicStream(game_music);
+    // } else {
+    //     std::cerr << "Failed to load menu music." << std::endl;
+    // }
     _timer += dt;
     if (_timer >= 1.0f)
     {
@@ -231,6 +240,7 @@ void Game::update()
     }
     _cycleTimer += dt;
     _particleSystem.update(dt);
+    updateRain(dt);
     if (_shakeTimer > 0) {
         _shakeTimer -= dt;
 
@@ -327,9 +337,9 @@ void Game::draw()
     _raylib->clearBackground(RAYWHITE);
     BeginMode2D(_screenCamera);
 
-    if (IsMusicReady(game_music)) {
-        UpdateMusicStream(game_music);
-    }
+    // if (IsMusicReady(game_music)) {
+    //     UpdateMusicStream(game_music);
+    // }
     if (_gameState == GameState::MENU) {
         drawMenu();
         EndMode2D();
@@ -391,7 +401,7 @@ void Game::draw()
     int textWidth = _raylib->measureText(sellText, 20);
     _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
     _particleSystem.draw();
-
+    drawRain();
     EndMode2D();
 
     if (_gameState == GameState::PAUSED) {
@@ -460,7 +470,6 @@ void Game::drawPauseOverlay()
         _raylib->drawText(label, rect.x + (rect.width - btnTextWidth) / 2, rect.y + 16, 28, BLACK);
     };
 
-    // Reuse pause button as "Reprendre"
     Rectangle resumeBtn = {(float)((1920 - 200) / 2), 480, 200, 60};
     bool resumeHover = CheckCollisionPointRec(_raylib->getMousePosition(), resumeBtn);
     drawButton(resumeBtn, "Reprendre", resumeHover);
@@ -572,4 +581,79 @@ void Game::loadGame(const std::string &filePath)
     policeAlert = data.policeAlert;
 
     std::cout << "Game loaded from " << filePath << " (text)" << std::endl;
+}
+
+void Game::triggerRain(float durationSeconds)
+{
+    _rainDuration = durationSeconds;
+    _rainTimer = 0.0f;
+    if (_isRaining == true)
+        return;
+    _isRaining = true;
+
+    for (auto &leaf : _rainLeaves) {
+        leaf.pos.x = (float)(rand() % 1920); // Largeur écran
+        leaf.pos.y = (float)(rand() % 1080 - 1080); // Position aléatoire au-dessus
+        leaf.speed = 200.0f + (rand() % 300); // Vitesse entre 200 et 500
+    }
+    std::cout << "Pluie déclenchée pour " << durationSeconds << " secondes !" << std::endl;
+}
+
+void Game::updateRain(float dt)
+{
+    // Si la pluie n'est pas active et que le timer est fini, on ne fait rien
+    if (!_isRaining) return;
+
+    _rainTimer += dt;
+
+    // Vérifie si le temps de pluie est écoulé
+    bool timeIsUp = _rainTimer >= _rainDuration;
+    bool visibleLeafFound = false;
+
+    for (auto &leaf : _rainLeaves) {
+        leaf.pos.y += leaf.speed * dt;
+
+        // Si la feuille sort en bas de l'écran (1080)
+        if (leaf.pos.y > 1080) {
+            if (!timeIsUp) {
+                // S'il reste du temps : on recycle la feuille en haut
+                leaf.pos.y = -50; 
+                leaf.pos.x = (float)(rand() % 1920);
+                visibleLeafFound = true;
+            }
+            // Sinon (timeIsUp), on ne la remonte pas, on la laisse tomber dans le vide
+        } else {
+            // La feuille est encore sur l'écran
+            visibleLeafFound = true;
+        }
+    }
+
+    // Si le temps est écoulé ET qu'il n'y a plus aucune feuille visible, on arrête tout
+    if (timeIsUp && !visibleLeafFound) {
+        _isRaining = false;
+        std::cout << "Fin de la pluie." << std::endl;
+    }
+}
+
+void Game::drawRain()
+{
+    if (!_isRaining) return;
+
+    // 1. Source : On prend TOUT le sprite (width/height de la texture originale)
+    Rectangle source = { 0.0f, 0.0f, (float)_leafTexture.width, (float)_leafTexture.height };
+
+    // 2. Origine de rotation (coin haut gauche ici)
+    Vector2 origin = { 0.0f, 0.0f };
+
+    for (const auto &leaf : _rainLeaves) {
+        // On ne dessine que si c'est visible (petite optimisation)
+        if (leaf.pos.y > -50 && leaf.pos.y < 1080) {
+            
+            // 3. Destination : On force la taille à 25x25 à la position de la feuille
+            Rectangle dest = { leaf.pos.x, leaf.pos.y, 25.0f, 25.0f };
+            
+            // Utilisation de DrawTexturePro (Raylib standard) pour le scaling précis
+            DrawTexturePro(_leafTexture, source, dest, origin, 0.0f, WHITE);
+        }
+    }
 }
