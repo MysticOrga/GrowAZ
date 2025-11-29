@@ -18,7 +18,7 @@ Game::Game()
 
     money = 0;
     malusRate = 0.05;
-    clientRate = 0.01;
+    clientRate = 0.05;
     policeRate = 0.01;
     policeAlert = false;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
@@ -28,6 +28,7 @@ Game::Game()
     dayWeek = 1;
     debt = 5000;
     _malus.push_back(m1);
+    _sellButtonHovered = false;
 }
 
 Game::~Game()
@@ -81,7 +82,7 @@ void Game::handleEvents()
             _leafs = 0;
         }
         double randomChance = (double)rand() / RAND_MAX;
-        _cycleTimer += 2.0f;
+        _cycleTimer += 0.1f;
         if (randomChance <= (_tree._leafDropRate + _tree._height))
         {
             _leafs++;
@@ -104,11 +105,15 @@ void Game::handleEvents()
         std::cout << "Clicked inside the stats area!" << std::endl;
     }
 
+    _hoveredShopItem.clear();
     int yPos = 100;
     for (const auto &itemPair : _shop.getObjectList())
     {
         Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
-        if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+        if (CheckCollisionPointRec(mousePos, itemButton) && _cycleType == DUSK) {
+            _hoveredShopItem = itemPair.first;
+        }
+        if (CheckCollisionPointRec(mousePos, itemButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) && 
             _cycleType == DUSK)
         {
             Object boughtObject;
@@ -120,7 +125,8 @@ void Game::handleEvents()
     }
 
     Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
-    if (CheckCollisionPointRec(mousePos, sellButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+    _sellButtonHovered = CheckCollisionPointRec(mousePos, sellButton) && _cycleType == DUSK && policeAlert == false;
+    if (_sellButtonHovered && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
         _cycleType == DUSK && policeAlert == false)
     {
         if (_leafs > 0)
@@ -159,14 +165,14 @@ void Game::update()
                 }
                 dayWeek = 1;
             }
-            double randomPolice = rand() % RAND_MAX;
-            std::cout << "Police andom: " << randomPolice;
-            if (randomPolice < policeRate + _tree._height + malusRate) {
-                policeAlert = true;
-            }
             _cycleType = DUSK;
             _cycleTimer = 0;
             std::cout << "Cycle: Passage au Crepuscule" << std::endl;
+        } else {
+            double randomPolice = (double)rand() / RAND_MAX;
+            if (randomPolice < policeRate + _tree._height + malusRate) {
+                policeAlert = true;
+            }
         }
         break;
 
@@ -246,7 +252,11 @@ void Game::draw()
     drawShop();
 
     Rectangle sellButton = {_statArea.x + _statArea.width - 220, _statArea.height - 70, 200, 50};
-    Color buttonColor = (_leafs > 0) ? LIME : GRAY;
+    Color buttonColor = GRAY;
+    if (_cycleType == DUSK && policeAlert == false) {
+        buttonColor = (_leafs > 0) ? LIME : GRAY;
+        if (_sellButtonHovered && _leafs > 0) buttonColor = GREEN;
+    }
     _raylib->drawRectangleRec(sellButton, buttonColor);
     std::string sellText = "Vendre Feuille (100)";
     int textWidth = _raylib->measureText(sellText, 20);
@@ -262,7 +272,11 @@ void Game::drawShop()
     for (const auto &itemPair : _shop.getObjectList())
     {
         Rectangle itemButton = {_shopArea.x + 20, (float)yPos, _shopArea.width - 40, 50};
-        _raylib->drawRectangleRec(itemButton, LIGHTGRAY);
+        Color buttonColor = LIGHTGRAY;
+        if (_cycleType == DUSK && itemPair.first == _hoveredShopItem) {
+            buttonColor = GRAY;
+        }
+        _raylib->drawRectangleRec(itemButton, buttonColor);
         _raylib->drawText(itemPair.first.c_str(), itemButton.x + 10, itemButton.y + 15, fontSize, BLACK);
         std::string priceText = std::to_string(itemPair.second) + " $";
         _raylib->drawText(priceText, itemButton.x + itemButton.width - _raylib->measureText(priceText, fontSize) - 10,

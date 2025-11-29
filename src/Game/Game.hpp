@@ -64,6 +64,9 @@ class Game
     float _cycleTimer;
 
     CycleType _cycleType;
+
+    std::string _hoveredShopItem;
+    bool _sellButtonHovered;
 };
 
 #endif /* !GAME_HPP_ */
