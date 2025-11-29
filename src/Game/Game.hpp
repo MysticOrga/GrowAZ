@@ -93,6 +93,8 @@ class Game
     Camera2D _screenCamera;
     float _shakeTimer;
     float _shakeIntensity;
+
+    Music menu_music;
 };
 
 #endif /* !GAME_HPP_ */

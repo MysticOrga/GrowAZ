@@ -43,10 +43,15 @@ Game::Game()
     _screenCamera.zoom = 1.0f;
     _shakeTimer = 0.0f;
     _shakeIntensity = 0.0f;
+    InitAudioDevice();
+    menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
+    PlayMusicStream(menu_music);
 }
 
 Game::~Game()
 {
+    UnloadMusicStream(menu_music);
+    CloseAudioDevice();
 }
 
 void Game::run()
@@ -422,6 +427,7 @@ void Game::drawMenu()
     int titlePosX = (1920 - _raylib->measureText(title, titleSize)) / 2;
     _raylib->drawText(title, titlePosX, 180, titleSize, DARKGREEN);
 
+    UpdateMusicStream(menu_music);
     auto drawButton = [&](const Rectangle &rect, const std::string &label) {
         bool hovered = CheckCollisionPointRec(mousePos, rect);
         Color buttonColor = hovered ? LIME : LIGHTGRAY;
