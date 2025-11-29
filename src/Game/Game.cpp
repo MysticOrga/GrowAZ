@@ -50,7 +50,9 @@ Game::Game()
     // menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
     // PlayMusicStream(menu_music);
     this->_raylib->loadTexture("tree", "../SpriteSheet/tree.png");
+    this->_raylib->loadTexture("ground", "../SpriteSheet/Ground.png");
     _leafTexture = LoadTexture("../SpriteSheet/falling_leaf.png");
+    _groundRect = {0, 0, 1000, 1080};
     // 2. On prépare un pool de 200 feuilles (elles sont invisibles pour l'instant)
     for (int i = 0; i < 200; i++) {
         FallingLeaf leaf;
@@ -235,6 +237,7 @@ void Game::update()
         _timer -= 1.0f;
     }
     _cycleTimer += dt;
+    _groundTimer += dt;
     _particleSystem.update(dt);
     updateRain(dt);
     if (_shakeTimer > 0) {
@@ -247,6 +250,12 @@ void Game::update()
     } else {
         _screenCamera.offset = { 0.0f, 0.0f };
         _shakeTimer = 0;
+    }
+    if (_groundTimer >= 0.5f){
+        _groundRect.x += 1000;
+        if (_groundRect.x >= 2000)
+            _groundRect.x = 0;
+        _groundTimer = 0;
     }
     switch (_cycleType)
     {
@@ -318,7 +327,7 @@ void Game::update()
 void Game::draw()
 {
     _raylib->beginDrawing();
-    _raylib->clearBackground(RAYWHITE);
+    // clearBack(RAYWHITE);
     BeginMode2D(_screenCamera);
 
     // if (IsMusicReady(game_music)) {
@@ -363,12 +372,14 @@ void Game::draw()
                       40, textColor);
     _raylib->drawText("Stat", _statArea.x + (_statArea.width - _raylib->measureText("Stat", 40)) / 2, 20, 40, BLACK);
     Rectangle treeRect = {0, 0, 1000, 3240/3};
-    Vector2 treePos = {460, 10};
+    Vector2 treePos = {460, -150};
     if (_tree._height > 100) {
         treeRect.y = 3240/3*2;
     } else if (_tree._height > 50) {
         treeRect.y = 3240/3;
     }
+    Vector2 groundPos = {460, 10};
+    _raylib->drawTextureRect("ground", _groundRect, groundPos, WHITE);
     _raylib->drawTextureRect("tree", treeRect, treePos, WHITE);
 
     drawStats();
