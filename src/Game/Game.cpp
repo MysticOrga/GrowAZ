@@ -413,7 +413,7 @@ void Game::draw()
         if (_sellButtonHovered && _leafs > 0) buttonColor = GREEN;
     }
     _raylib->drawRectangleRec(sellButton, buttonColor);
-    std::string sellText = "Vendre Feuille (100)";
+    std::string sellText = "Deal Leaf (100 $)";
     int textWidth = _raylib->measureText(sellText, 20);
     _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
     _particleSystem.draw();
