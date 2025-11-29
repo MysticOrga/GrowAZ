@@ -8,6 +8,7 @@
 #include "./Object/Shop.hpp"
 #include "./Object/Object.hpp"
 #include "./Malus/Malus.hpp"
+#include "./Particules/Particules.hpp"
 
 enum CycleType {
     DAY,
@@ -67,6 +68,8 @@ class Game
 
     std::string _hoveredShopItem;
     bool _sellButtonHovered;
+
+    ParticleSystem _particleSystem;
 };
 
 #endif /* !GAME_HPP_ */

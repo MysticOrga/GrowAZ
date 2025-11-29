@@ -29,6 +29,7 @@ Game::Game()
     debt = 5000;
     _malus.push_back(m1);
     _sellButtonHovered = false;
+    _particleSystem.init(500);
 }
 
 Game::~Game()
@@ -85,6 +86,7 @@ void Game::handleEvents()
         _cycleTimer += 0.1f;
         if (randomChance <= (_tree._leafDropRate + _tree._height))
         {
+            _particleSystem.spawn(mousePos, 10);
             _leafs++;
         }
         else
@@ -148,7 +150,7 @@ void Game::update()
         _timer -= 1.0f;
     }
     _cycleTimer += dt;
-
+    _particleSystem.update(dt);
     switch (_cycleType)
     {
     case DAY:
@@ -261,7 +263,7 @@ void Game::draw()
     std::string sellText = "Vendre Feuille (100)";
     int textWidth = _raylib->measureText(sellText, 20);
     _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
-
+    _particleSystem.draw();
     _raylib->endDrawing();
 }
 
