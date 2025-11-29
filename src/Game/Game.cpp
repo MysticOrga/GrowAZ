@@ -50,12 +50,19 @@ Game::Game()
     menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
     game_music = LoadMusicStream("../soundboard/Chacharbre.mp3");
     PlayMusicStream(menu_music);
+    if (IsMusicReady(menu_music)) {
+        PlayMusicStream(menu_music);
+    } else {
+        std::cerr << "Failed to load menu music." << std::endl;
+    }
 }
 
 Game::~Game()
 {
-    UnloadMusicStream(menu_music);
-    UnloadMusicStream(game_music);
+    if (IsMusicReady(game_music))
+        UnloadMusicStream(game_music);
+    if (IsMusicReady(menu_music))
+        UnloadMusicStream(menu_music);
     CloseAudioDevice();
 }
 
@@ -214,7 +221,11 @@ void Game::update()
     float dt = _raylib->getFrameTime();
     if (_gameState == GameState::MENU || _gameState == GameState::PAUSED)
         return;
-    PlayMusicStream(game_music);
+    if (IsMusicReady(game_music)) {
+        PlayMusicStream(game_music);
+    } else {
+        std::cerr << "Failed to load menu music." << std::endl;
+    }
     _timer += dt;
     if (_timer >= 1.0f)
     {
@@ -308,7 +319,9 @@ void Game::draw()
     _raylib->clearBackground(RAYWHITE);
     BeginMode2D(_screenCamera);
 
-    UpdateMusicStream(game_music);
+    if (IsMusicReady(game_music)) {
+        UpdateMusicStream(game_music);
+    }
     if (_gameState == GameState::MENU) {
         drawMenu();
         EndMode2D();
@@ -448,7 +461,9 @@ void Game::drawMenu()
     int titlePosX = (1920 - _raylib->measureText(title, titleSize)) / 2;
     _raylib->drawText(title, titlePosX, 180, titleSize, DARKGREEN);
 
-    UpdateMusicStream(menu_music);
+    if (IsMusicReady(menu_music)) {
+        UpdateMusicStream(menu_music);
+    }
     auto drawButton = [&](const Rectangle &rect, const std::string &label) {
         bool hovered = CheckCollisionPointRec(mousePos, rect);
         Color buttonColor = hovered ? LIME : LIGHTGRAY;
