@@ -16,6 +16,7 @@ Game::Game()
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 1, "Tree Size", 500);
+    Object emp1(StatBuff::AUTO_CLICK, 0.5, "Employee", 1300);
     Malus m1(MalusType::LEAF, 200, "Thief");
 
     money = 0;
@@ -88,6 +89,9 @@ void Game::handleBuffing(const Object obj)
         break;
     case StatBuff::COPS_DROP:
         policeRate += obj.getBuff();
+        break;
+    case StatBuff::AUTO_CLICK:
+        _employee.push_back(obj);
         break;
     default:
         break;
@@ -262,6 +266,14 @@ void Game::update()
             if (randomPolice < policeRate + _tree._height + malusRate) {
                 policeAlert = true;
             }
+            for (Object emp: _employee)
+            {
+                double rnd = (double)rand() / RAND_MAX;
+                if (rnd < emp.getBuff())
+                {
+                    _leafs++;
+                }
+            }
         }
         break;
 
@@ -295,6 +307,10 @@ void Game::update()
                 default:
                     break;
                 }
+            }
+            for (Object emp: _employee)
+            {
+                money -= emp.getPrice();
             }
             _cycleType = DAY;
             _cycleTimer = 0;
