@@ -28,7 +28,8 @@ class Raylib {
         // Texture/Sprite management
         void loadTexture(const std::string &name, const std::string &fileName);
         void drawTexture(const std::string &name, int posX, int posY, Color tint = WHITE);
-        void drawTextureV(const std::string& name, Vector2 position, Color tint = WHITE);
+        void drawTextureV(const std::string &name, Vector2 position, Color tint = WHITE);
+        void drawTextureRect(const std::string &name, Rectangle rect, Vector2 pos, Color tint = WHITE);
         Texture2D getTexture(const std::string &name);
         void unloadTexture(const std::string &name);
 

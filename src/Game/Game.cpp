@@ -46,24 +46,16 @@ Game::Game()
     _screenCamera.zoom = 1.0f;
     _shakeTimer = 0.0f;
     _shakeIntensity = 0.0f;
-    InitAudioDevice();
-    menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
-    game_music = LoadMusicStream("../soundboard/Chacharbre.mp3");
-    PlayMusicStream(menu_music);
-    if (IsMusicReady(menu_music)) {
-        PlayMusicStream(menu_music);
-    } else {
-        std::cerr << "Failed to load menu music." << std::endl;
-    }
+    // InitAudioDevice();
+    // menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
+    // PlayMusicStream(menu_music);
+    this->_raylib->loadTexture("tree", "../SpriteSheet/tree.png");
 }
 
 Game::~Game()
 {
-    if (IsMusicReady(game_music))
-        UnloadMusicStream(game_music);
-    if (IsMusicReady(menu_music))
-        UnloadMusicStream(menu_music);
-    CloseAudioDevice();
+    // UnloadMusicStream(menu_music);
+    // CloseAudioDevice();
 }
 
 void Game::run()
@@ -360,6 +352,14 @@ void Game::draw()
     _raylib->drawText("Click Here", _clickArea.x + (_clickArea.width - _raylib->measureText("Click Here", 40)) / 2, 20,
                       40, textColor);
     _raylib->drawText("Stat", _statArea.x + (_statArea.width - _raylib->measureText("Stat", 40)) / 2, 20, 40, BLACK);
+    Rectangle treeRect = {0, 0, 1000, 3240/3};
+    Vector2 treePos = {460, 10};
+    if (_tree._height > 100) {
+        treeRect.y = 3240/3*2;
+    } else if (_tree._height > 50) {
+        treeRect.y = 3240/3;
+    }
+    _raylib->drawTextureRect("tree", treeRect, treePos, WHITE);
 
     drawStats();
     drawShop();
@@ -461,9 +461,7 @@ void Game::drawMenu()
     int titlePosX = (1920 - _raylib->measureText(title, titleSize)) / 2;
     _raylib->drawText(title, titlePosX, 180, titleSize, DARKGREEN);
 
-    if (IsMusicReady(menu_music)) {
-        UpdateMusicStream(menu_music);
-    }
+    // UpdateMusicStream(menu_music);
     auto drawButton = [&](const Rectangle &rect, const std::string &label) {
         bool hovered = CheckCollisionPointRec(mousePos, rect);
         Color buttonColor = hovered ? LIME : LIGHTGRAY;

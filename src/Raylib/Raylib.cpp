@@ -74,12 +74,20 @@ void Raylib::drawTexture(const std::string &name, int posX, int posY, Color tint
     DrawTexture(_textures[name], posX, posY, tint);
 }
 
-void Raylib::drawTextureV(const std::string& name, Vector2 position, Color tint)
+void Raylib::drawTextureV(const std::string &name, Vector2 position, Color tint)
 {
     if (_textures.find(name) == _textures.end()) {
         return;
     }
     DrawTextureV(_textures[name], position, tint);
+}
+
+void Raylib::drawTextureRect(const std::string &name, Rectangle rect, Vector2 pos, Color tint)
+{
+    if (_textures.find(name) == _textures.end()) {
+        return;
+    }
+    DrawTextureRec(_textures[name], rect, pos, tint);
 }
 
 Texture2D Raylib::getTexture(const std::string &name)
