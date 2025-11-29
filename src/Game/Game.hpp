@@ -5,6 +5,7 @@
 #include <memory>
 #include <cstdlib>
 #include <vector> // Nécessaire pour std::vector dans drawStats
+#include <fstream>
 #include "./Object/Shop.hpp"
 #include "./Object/Object.hpp"
 #include "./Malus/Malus.hpp"
@@ -31,6 +32,21 @@ class Tree
     double _leafDropRate;
 };
 
+struct SaveData {
+    long long money;
+    long long leafs;
+    long long debt;
+    int dayWeek;
+    double malusRate;
+    double clientRate;
+    double policeRate;
+    long long treeHeight;
+    double leafDropRate;
+    int cycleType;
+    float cycleTimer;
+    bool policeAlert;
+};
+
 class Game
 {
   public:
@@ -48,6 +64,8 @@ class Game
     void drawPauseOverlay();
     void handleBuffing(const Object obj);
     void triggerShake(float intensity, float duration);
+    void saveGame(const std::string &filePath = "save.txt") const;
+    void loadGame(const std::string &filePath = "save.txt");
 
     Tree _tree;
     Shop _shop;
@@ -66,8 +84,10 @@ class Game
     Rectangle _statArea;
 
     Rectangle _playButton;
+    Rectangle _loadButton;
     Rectangle _quitButton;
     Rectangle _pauseButton;
+    Rectangle _pauseSaveButton;
     Rectangle _pauseQuitButton;
     bool _running;
     GameState _gameState;
@@ -88,6 +108,7 @@ class Game
 
     ParticleSystem _particleSystem;
     bool _pauseButtonHovered;
+    bool _pauseSaveButtonHovered;
     bool _pauseQuitButtonHovered;
 
     Camera2D _screenCamera;
