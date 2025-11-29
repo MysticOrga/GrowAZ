@@ -7,11 +7,12 @@
 
 #include "./Game/Game.hpp"
 #include <iostream>
+#include <fstream>
 
 Game::Game()
     : _leafs(0), _cps(0), _clickCount(0), _timer(0), _cycleTimer(0), _cycleType(DAY), _shopArea{0, 0, 460, 1080},
         _clickArea{460, 0, 1000, 1080}, _statArea{1460, 0, 460, 1080}, _running(true), _gameState(GameState::MENU),
-        _playButton{760, 420, 400, 80}, _quitButton{760, 520, 400, 80}
+        _playButton{760, 380, 400, 80}, _loadButton{760, 480, 400, 80}, _quitButton{760, 580, 400, 80}
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 0.02, "Tree Size", 500);
@@ -32,7 +33,9 @@ Game::Game()
     _sellButtonHovered = false;
     _pauseButton = {_statArea.x + _statArea.width - 180, 20, 160, 40};
     _pauseButtonHovered = false;
-    _pauseQuitButton = {(float)((1920 - 200) / 2), 560, 200, 60};
+    _pauseSaveButton = {(float)((1920 - 200) / 2), 520, 200, 60};
+    _pauseQuitButton = {(float)((1920 - 200) / 2), 600, 200, 60};
+    _pauseSaveButtonHovered = false;
     _pauseQuitButtonHovered = false;
 }
 
@@ -80,11 +83,16 @@ void Game::handleEvents()
 {
     Vector2 mousePos = _raylib->getMousePosition();
     _pauseButtonHovered = false;
+    _pauseSaveButtonHovered = false;
     _pauseQuitButtonHovered = false;
 
     if (_gameState == GameState::MENU) {
         if (CheckCollisionPointRec(mousePos, _playButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
             _gameState = GameState::RUNNING;
+        if (CheckCollisionPointRec(mousePos, _loadButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            loadGame();
+            _gameState = GameState::RUNNING;
+        }
         if (CheckCollisionPointRec(mousePos, _quitButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
         _running = false;
         return;
@@ -99,11 +107,24 @@ void Game::handleEvents()
         _gameState = (_gameState == GameState::PAUSED) ? GameState::RUNNING : GameState::PAUSED;
     }
 
+    if (_raylib->isKeyPressed(KEY_S)) {
+        saveGame();
+    }
+    if (_raylib->isKeyPressed(KEY_L)) {
+        loadGame();
+    }
+
     if (_gameState == GameState::PAUSED) {
         Rectangle resumeBtn = {(float)((1920 - 200) / 2), 480, 200, 60};
         bool resumeHover = CheckCollisionPointRec(mousePos, resumeBtn);
         if (resumeHover && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             _gameState = GameState::RUNNING;
+            return;
+        }
+
+        _pauseSaveButtonHovered = CheckCollisionPointRec(mousePos, _pauseSaveButton);
+        if (_pauseSaveButtonHovered && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            saveGame();
             return;
         }
 
@@ -384,6 +405,7 @@ void Game::drawPauseOverlay()
     Rectangle resumeBtn = {(float)((1920 - 200) / 2), 480, 200, 60};
     bool resumeHover = CheckCollisionPointRec(_raylib->getMousePosition(), resumeBtn);
     drawButton(resumeBtn, "Reprendre", resumeHover);
+    drawButton(_pauseSaveButton, "Sauvegarder", _pauseSaveButtonHovered);
     drawButton(_pauseQuitButton, "Quitter", _pauseQuitButtonHovered);
 }
 
@@ -405,5 +427,83 @@ void Game::drawMenu()
     };
 
     drawButton(_playButton, "Jouer");
+    drawButton(_loadButton, "Charger");
     drawButton(_quitButton, "Quitter");
+}
+
+void Game::saveGame(const std::string &filePath) const
+{
+    SaveData data{};
+    data.money = money;
+    data.leafs = _leafs;
+    data.debt = debt;
+    data.dayWeek = dayWeek;
+    data.malusRate = malusRate;
+    data.clientRate = clientRate;
+    data.policeRate = policeRate;
+    data.treeHeight = _tree._height;
+    data.leafDropRate = _tree._leafDropRate;
+    data.cycleType = static_cast<int>(_cycleType);
+    data.cycleTimer = _cycleTimer;
+    data.policeAlert = policeAlert;
+
+    std::ofstream out(filePath);
+    if (!out) {
+        std::cerr << "Failed to open save file: " << filePath << std::endl;
+        return;
+    }
+    out << data.money << "\n"
+        << data.leafs << "\n"
+        << data.debt << "\n"
+        << data.dayWeek << "\n"
+        << data.malusRate << "\n"
+        << data.clientRate << "\n"
+        << data.policeRate << "\n"
+        << data.treeHeight << "\n"
+        << data.leafDropRate << "\n"
+        << data.cycleType << "\n"
+        << data.cycleTimer << "\n"
+        << data.policeAlert << "\n";
+    std::cout << "Game saved to " << filePath << " (text)" << std::endl;
+}
+
+void Game::loadGame(const std::string &filePath)
+{
+    SaveData data{};
+    std::ifstream in(filePath);
+    if (!in) {
+        std::cerr << "Save file not found: " << filePath << std::endl;
+        return;
+    }
+    in >> data.money
+        >> data.leafs
+        >> data.debt
+        >> data.dayWeek
+        >> data.malusRate
+        >> data.clientRate
+        >> data.policeRate
+        >> data.treeHeight
+        >> data.leafDropRate
+        >> data.cycleType
+        >> data.cycleTimer
+        >> data.policeAlert;
+    if (!in) {
+        std::cerr << "Failed to read save file: " << filePath << std::endl;
+        return;
+    }
+
+    money = data.money;
+    _leafs = data.leafs;
+    debt = data.debt;
+    dayWeek = data.dayWeek;
+    malusRate = data.malusRate;
+    clientRate = data.clientRate;
+    policeRate = data.policeRate;
+    _tree._height = data.treeHeight;
+    _tree._leafDropRate = data.leafDropRate;
+    _cycleType = static_cast<CycleType>(data.cycleType);
+    _cycleTimer = data.cycleTimer;
+    policeAlert = data.policeAlert;
+
+    std::cout << "Game loaded from " << filePath << " (text)" << std::endl;
 }
