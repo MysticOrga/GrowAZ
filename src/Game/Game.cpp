@@ -18,7 +18,7 @@ Game::Game()
 
     money = 0;
     malusRate = 0.05;
-    clientRate = 0.05;
+    clientRate = 0.01;
     policeRate = 0.01;
     policeAlert = false;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
@@ -159,14 +159,14 @@ void Game::update()
                 }
                 dayWeek = 1;
             }
-            _cycleType = DUSK;
-            _cycleTimer = 0;
-            std::cout << "Cycle: Passage au Crepuscule" << std::endl;
-        } else {
-            double randomPolice = (double)rand() / RAND_MAX;
+            double randomPolice = rand() % RAND_MAX;
+            std::cout << "Police andom: " << randomPolice;
             if (randomPolice < policeRate + _tree._height + malusRate) {
                 policeAlert = true;
             }
+            _cycleType = DUSK;
+            _cycleTimer = 0;
+            std::cout << "Cycle: Passage au Crepuscule" << std::endl;
         }
         break;
 

@@ -14,7 +14,6 @@ enum MalusType
     MONEY,
     LEAF,
     TREE,
-    LEAF
 };
 
 class Malus
