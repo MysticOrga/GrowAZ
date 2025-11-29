@@ -79,9 +79,11 @@ class Game
     float _rainDuration;    // Combien de temps la pluie doit durer
     float _rainTimer;       // Compteur de temps actuel
     float _groundTimer;
+    float _cloudTimer;
     bool _isRaining;        // Est-ce que la pluie est active ?
     Texture2D _leafTexture;
     Rectangle _groundRect;
+    Rectangle _cloudRect;
     Tree _tree;
     Shop _shop;
     std::vector<Malus> _malus;

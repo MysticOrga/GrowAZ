@@ -53,8 +53,10 @@ Game::Game()
     // PlayMusicStream(menu_music);
     this->_raylib->loadTexture("tree", "../SpriteSheet/tree.png");
     this->_raylib->loadTexture("ground", "../SpriteSheet/Ground.png");
+    this->_raylib->loadTexture("clouds", "../SpriteSheet/Clouds.png");
     _leafTexture = LoadTexture("../SpriteSheet/falling_leaf.png");
     _groundRect = {0, 0, 1000, 1080};
+    _cloudRect = {0, 0, 1000, 500};
     // 2. On prépare un pool de 200 feuilles (elles sont invisibles pour l'instant)
     for (int i = 0; i < 200; i++) {
         FallingLeaf leaf;
@@ -244,6 +246,7 @@ void Game::update()
     }
     _cycleTimer += dt;
     _groundTimer += dt;
+    _cloudTimer += dt;
     _particleSystem.update(dt);
     updateRain(dt);
     if (_shakeTimer > 0) {
@@ -262,6 +265,20 @@ void Game::update()
         if (_groundRect.x >= 2000)
             _groundRect.x = 0;
         _groundTimer = 0;
+    }
+    if (_cloudTimer >= 0.3f){
+        _cloudRect.x += 1000;
+        if (_cloudRect.x >= 3000){
+            _cloudRect.x = 0;
+            _cloudRect.y += 500;
+        }
+        if (_cloudRect.x >= 2000 && _cloudRect.y >= 3000){
+            _cloudRect.x = 0;
+            _cloudRect.y = 0;
+        }
+        if (_cloudRect.y >= 3500)
+            _cloudRect.y = 0;
+        _cloudTimer = 0;
     }
     switch (_cycleType)
     {
@@ -411,7 +428,9 @@ void Game::draw()
         treeRect.y = 3240/3;
     }
     Vector2 groundPos = {460, 10};
+    Vector2 cloudPos = {460, 10};
     _raylib->drawTextureRect("ground", _groundRect, groundPos, WHITE);
+    _raylib->drawTextureRect("clouds", _cloudRect, cloudPos, WHITE);
     _raylib->drawTextureRect("tree", treeRect, treePos, WHITE);
 
     drawStats();
