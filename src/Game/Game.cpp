@@ -48,12 +48,14 @@ Game::Game()
     _shakeIntensity = 0.0f;
     InitAudioDevice();
     menu_music = LoadMusicStream("../soundboard/Menu_sound.mp3");
+    game_music = LoadMusicStream("../soundboard/Chacharbre.mp3");
     PlayMusicStream(menu_music);
 }
 
 Game::~Game()
 {
     UnloadMusicStream(menu_music);
+    UnloadMusicStream(game_music);
     CloseAudioDevice();
 }
 
@@ -212,6 +214,7 @@ void Game::update()
     float dt = _raylib->getFrameTime();
     if (_gameState == GameState::MENU || _gameState == GameState::PAUSED)
         return;
+    PlayMusicStream(game_music);
     _timer += dt;
     if (_timer >= 1.0f)
     {
@@ -305,6 +308,7 @@ void Game::draw()
     _raylib->clearBackground(RAYWHITE);
     BeginMode2D(_screenCamera);
 
+    UpdateMusicStream(game_music);
     if (_gameState == GameState::MENU) {
         drawMenu();
         EndMode2D();
