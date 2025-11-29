@@ -13,7 +13,7 @@ Game::Game()
       _clickArea{460, 0, 1000, 1080}, _statArea{1460, 0, 460, 1080}
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
-    Object obj2(StatBuff::TREE_SIZE, 0.02, "Tree Size", 500);
+    Object obj2(StatBuff::TREE_SIZE, 1, "Tree Size", 500);
     Malus m1(MalusType::LEAF, 200, "Thief");
 
     money = 0;
@@ -21,6 +21,8 @@ Game::Game()
     clientRate = 0.05;
     policeRate = 0.01;
     policeAlert = false;
+    _tree._height = 10;
+    _tree._leafDropRate = 0.1;
     _raylib = std::make_unique<Raylib>(1920, 1080, "Cookie Clicker");
     srand(time(NULL));
     _shop.addObject(obj1);
@@ -81,9 +83,10 @@ void Game::handleEvents()
         if (policeAlert) {
             _leafs = 0;
         }
-        double randomChance = (double)rand() / RAND_MAX;
+        double randomChance = (double)GetRandomValue(0, this->_tree._height) * _tree._leafDropRate;
+        std::cout << "randomchance: " << randomChance << std::endl;
         _cycleTimer += 0.1f;
-        if (randomChance <= (_tree._leafDropRate + _tree._height))
+        if (randomChance <= _tree._leafDropRate)
         {
             _leafs++;
         }
@@ -169,7 +172,7 @@ void Game::update()
             _cycleTimer = 0;
             std::cout << "Cycle: Passage au Crepuscule" << std::endl;
         } else {
-            double randomPolice = (double)rand() / RAND_MAX;
+            double randomPolice = rand() % RAND_MAX;
             if (randomPolice < policeRate + _tree._height + malusRate) {
                 policeAlert = true;
             }
