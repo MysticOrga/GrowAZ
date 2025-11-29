@@ -16,6 +16,12 @@ enum CycleType {
     NIGHT
 };
 
+enum class GameState {
+    MENU,
+    RUNNING,
+    PAUSED
+};
+
 class Tree
 {
   public:
@@ -38,6 +44,8 @@ class Game
     void draw();
     void drawStats();
     void drawShop();
+    void drawMenu();
+    void drawPauseOverlay();
     void handleBuffing(const Object obj);
 
     Tree _tree;
@@ -55,6 +63,14 @@ class Game
     Rectangle _shopArea;
     Rectangle _clickArea;
     Rectangle _statArea;
+
+    Rectangle _playButton;
+    Rectangle _quitButton;
+    Rectangle _pauseButton;
+    Rectangle _pauseQuitButton;
+    bool _running;
+    GameState _gameState;
+
     double _cps;
     int _clickCount;
     bool policeAlert;
@@ -70,6 +86,8 @@ class Game
     bool _sellButtonHovered;
 
     ParticleSystem _particleSystem;
+    bool _pauseButtonHovered;
+    bool _pauseQuitButtonHovered;
 };
 
 #endif /* !GAME_HPP_ */
