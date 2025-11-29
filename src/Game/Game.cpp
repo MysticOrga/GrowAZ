@@ -213,6 +213,7 @@ void Game::handleEvents()
         {
             _leafs--;
             money += 100;
+            triggerRain(1.0f);
             std::cout << "Vendu 1 feuille pour 100$. Argent actuel: " << money << std::endl;
         }
     }
@@ -486,8 +487,8 @@ void Game::drawMenu()
 
 void Game::triggerShake(float intensity, float duration)
 {
-    _shakeIntensity = intensity; // Force du tremblement en pixels (ex: 5.0f)
-    _shakeTimer = duration;      // Durée en secondes (ex: 0.2f)
+    _shakeIntensity = intensity;
+    _shakeTimer = duration;
 }
 
 void Game::saveGame(const std::string &filePath) const
@@ -576,43 +577,36 @@ void Game::triggerRain(float durationSeconds)
     _isRaining = true;
 
     for (auto &leaf : _rainLeaves) {
-        leaf.pos.x = (float)(rand() % 1920); // Largeur écran
-        leaf.pos.y = (float)(rand() % 1080 - 1080); // Position aléatoire au-dessus
-        leaf.speed = 200.0f + (rand() % 300); // Vitesse entre 200 et 500
+        leaf.pos.x = (float)(rand() % 1920);
+        leaf.pos.y = (float)(rand() % 1080 - 1080);
+        leaf.speed = 200.0f + (rand() % 300);
     }
     std::cout << "Pluie déclenchée pour " << durationSeconds << " secondes !" << std::endl;
 }
 
 void Game::updateRain(float dt)
 {
-    // Si la pluie n'est pas active et que le timer est fini, on ne fait rien
     if (!_isRaining) return;
 
     _rainTimer += dt;
 
-    // Vérifie si le temps de pluie est écoulé
     bool timeIsUp = _rainTimer >= _rainDuration;
     bool visibleLeafFound = false;
 
     for (auto &leaf : _rainLeaves) {
         leaf.pos.y += leaf.speed * dt;
 
-        // Si la feuille sort en bas de l'écran (1080)
         if (leaf.pos.y > 1080) {
             if (!timeIsUp) {
-                // S'il reste du temps : on recycle la feuille en haut
-                leaf.pos.y = -50; 
+                leaf.pos.y = -50;
                 leaf.pos.x = (float)(rand() % 1920);
                 visibleLeafFound = true;
             }
-            // Sinon (timeIsUp), on ne la remonte pas, on la laisse tomber dans le vide
         } else {
-            // La feuille est encore sur l'écran
             visibleLeafFound = true;
         }
     }
 
-    // Si le temps est écoulé ET qu'il n'y a plus aucune feuille visible, on arrête tout
     if (timeIsUp && !visibleLeafFound) {
         _isRaining = false;
         std::cout << "Fin de la pluie." << std::endl;
@@ -623,20 +617,13 @@ void Game::drawRain()
 {
     if (!_isRaining) return;
 
-    // 1. Source : On prend TOUT le sprite (width/height de la texture originale)
     Rectangle source = { 0.0f, 0.0f, (float)_leafTexture.width, (float)_leafTexture.height };
 
-    // 2. Origine de rotation (coin haut gauche ici)
     Vector2 origin = { 0.0f, 0.0f };
 
     for (const auto &leaf : _rainLeaves) {
-        // On ne dessine que si c'est visible (petite optimisation)
         if (leaf.pos.y > -50 && leaf.pos.y < 1080) {
-            
-            // 3. Destination : On force la taille à 25x25 à la position de la feuille
             Rectangle dest = { leaf.pos.x, leaf.pos.y, 25.0f, 25.0f };
-            
-            // Utilisation de DrawTexturePro (Raylib standard) pour le scaling précis
             DrawTexturePro(_leafTexture, source, dest, origin, 0.0f, WHITE);
         }
     }
