@@ -16,6 +16,7 @@ Game::Game()
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 1, "Tree Size", 500);
+    Object emp1(StatBuff::AUTO_CLICK, 0.01, "Collector", 650);
     Malus m1(MalusType::LEAF, 200, "Thief");
 
     money = 0;
@@ -29,6 +30,7 @@ Game::Game()
     srand(time(NULL));
     _shop.addObject(obj1);
     _shop.addObject(obj2);
+    _shop.addObject(emp1);
     dayWeek = 1;
     debt = 50000;
     _malus.push_back(m1);
@@ -98,6 +100,9 @@ void Game::handleBuffing(const Object obj)
         break;
     case StatBuff::COPS_DROP:
         policeRate += obj.getBuff();
+        break;
+    case StatBuff::AUTO_CLICK:
+        _employee.push_back(obj);
         break;
     default:
         break;
@@ -215,6 +220,7 @@ void Game::handleEvents()
         {
             _leafs--;
             money += 100;
+            triggerRain(1.0f);
             std::cout << "Vendu 1 feuille pour 100$. Argent actuel: " << money << std::endl;
         }
     }
@@ -262,25 +268,27 @@ void Game::update()
     case DAY:
         if (_cycleTimer >= 60.0f)
         {
-            if (dayWeek == 7) {
-                if (money < debt) {
-                    std::cout << "Vous n'avez pas remboursé votre dette! Game Over!" << std::endl;
-                    exit(0);
-                } else {
-                    money -= debt;
-                    std::cout << "Dette remboursée! Argent restant: " << money << " $" << std::endl;
-                    debt = rand() % 5000 + (5000 * _tree._height);
-                }
-                dayWeek = 1;
-            }
             _cycleType = DUSK;
             _cycleTimer = 0;
             std::cout << "Cycle: Passage au Crepuscule" << std::endl;
         } else {
-            double randomPolice = rand() % RAND_MAX;
-            if (randomPolice < policeRate + _tree._height + malusRate) {
+            int randomPolice = GetRandomValue(0, _tree._height * 2);
+            if (randomPolice < (_tree._height - 50) * policeRate) {
                 policeAlert = true;
             }
+            if (!policeAlert)
+            {
+                for (Object emp: _employee)
+                {
+                    double rnd = (double)rand() / RAND_MAX;
+                    if (rnd < emp.getBuff())
+                    {
+                        triggerRain(3.0f);
+                        _leafs++;
+                    }
+                }
+            }
+
         }
         break;
 
@@ -296,8 +304,8 @@ void Game::update()
     case NIGHT:
         if (_cycleTimer >= 10.0f)
         {
-            double ramdomMalus = rand() % RAND_MAX;
-            if (ramdomMalus < malusRate) {
+            int ramdomMalus = GetRandomValue(0, _tree._height * 2);
+            if (ramdomMalus < (_tree._height - 25) * malusRate) {
                 Malus malus = _malus[rand() % _malus.size()];
 
                 switch (malus.getMalusType())
@@ -315,9 +323,33 @@ void Game::update()
                     break;
                 }
             }
+            for (Object emp: _employee)
+            {
+                money -= emp.getPrice();
+            }
             _cycleType = DAY;
             _cycleTimer = 0;
             dayWeek += 1;
+            if (dayWeek >= 7) {
+                if (money < debt) {
+                    std::cout << "Vous n'avez pas remboursé votre dette! Game Over!" << std::endl;
+                    _gameState = GameState::MENU;
+                    money = 0;
+                    _leafs = 0;
+                    debt = 50000;
+                    _tree._leafDropRate = 0.01;
+                    _tree._height = 1;
+                    _employee.clear();
+                    dayWeek = 1;
+                    policeAlert = false;
+                    return;
+                } else {
+                    money -= debt;
+                    std::cout << "Dette remboursée! Argent restant: " << money << " $" << std::endl;
+                    debt = rand() % 5000 + (5000 * _tree._height);
+                }
+                dayWeek = 1;
+            }
             std::cout << "Cycle: Retour au Jour" << std::endl;
             policeAlert = false;
         }
@@ -350,7 +382,7 @@ void Game::draw()
         clickAreaColor = ORANGE;
         break;
     case NIGHT:
-        clickAreaColor = DARKBLUE;
+        clickAreaColor = BLACK;
         break;
     default:
         clickAreaColor = LIGHTGRAY;
@@ -358,8 +390,8 @@ void Game::draw()
     }
 
     _raylib->drawRectangleRec(_clickArea, clickAreaColor);
-    _raylib->drawRectangleRec(_shopArea, BEIGE);
-    _raylib->drawRectangleRec(_statArea, RED);
+    _raylib->drawRectangleRec(_shopArea, DARKGREEN);
+    _raylib->drawRectangleRec(_statArea, DARKGREEN);
     Color pauseBtnColor = _pauseButtonHovered ? DARKGRAY : GRAY;
     std::string pauseLabel = (_gameState == GameState::PAUSED) ? "Resume" : "Pause";
     _raylib->drawRectangleRec(_pauseButton, pauseBtnColor);
@@ -392,7 +424,7 @@ void Game::draw()
         if (_sellButtonHovered && _leafs > 0) buttonColor = GREEN;
     }
     _raylib->drawRectangleRec(sellButton, buttonColor);
-    std::string sellText = "Vendre Feuille (100)";
+    std::string sellText = "Deal Leaf (100 $)";
     int textWidth = _raylib->measureText(sellText, 20);
     _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
     _particleSystem.draw();
@@ -497,8 +529,8 @@ void Game::drawMenu()
 
 void Game::triggerShake(float intensity, float duration)
 {
-    _shakeIntensity = intensity; // Force du tremblement en pixels (ex: 5.0f)
-    _shakeTimer = duration;      // Durée en secondes (ex: 0.2f)
+    _shakeIntensity = intensity;
+    _shakeTimer = duration;
 }
 
 void Game::saveGame(const std::string &filePath) const
@@ -587,43 +619,36 @@ void Game::triggerRain(float durationSeconds)
     _isRaining = true;
 
     for (auto &leaf : _rainLeaves) {
-        leaf.pos.x = (float)(rand() % 1920); // Largeur écran
-        leaf.pos.y = (float)(rand() % 1080 - 1080); // Position aléatoire au-dessus
-        leaf.speed = 200.0f + (rand() % 300); // Vitesse entre 200 et 500
+        leaf.pos.x = (float)(rand() % 1920);
+        leaf.pos.y = (float)(rand() % 1080 - 1080);
+        leaf.speed = 200.0f + (rand() % 300);
     }
     std::cout << "Pluie déclenchée pour " << durationSeconds << " secondes !" << std::endl;
 }
 
 void Game::updateRain(float dt)
 {
-    // Si la pluie n'est pas active et que le timer est fini, on ne fait rien
     if (!_isRaining) return;
 
     _rainTimer += dt;
 
-    // Vérifie si le temps de pluie est écoulé
     bool timeIsUp = _rainTimer >= _rainDuration;
     bool visibleLeafFound = false;
 
     for (auto &leaf : _rainLeaves) {
         leaf.pos.y += leaf.speed * dt;
 
-        // Si la feuille sort en bas de l'écran (1080)
         if (leaf.pos.y > 1080) {
             if (!timeIsUp) {
-                // S'il reste du temps : on recycle la feuille en haut
-                leaf.pos.y = -50; 
+                leaf.pos.y = -50;
                 leaf.pos.x = (float)(rand() % 1920);
                 visibleLeafFound = true;
             }
-            // Sinon (timeIsUp), on ne la remonte pas, on la laisse tomber dans le vide
         } else {
-            // La feuille est encore sur l'écran
             visibleLeafFound = true;
         }
     }
 
-    // Si le temps est écoulé ET qu'il n'y a plus aucune feuille visible, on arrête tout
     if (timeIsUp && !visibleLeafFound) {
         _isRaining = false;
         std::cout << "Fin de la pluie." << std::endl;
@@ -634,20 +659,13 @@ void Game::drawRain()
 {
     if (!_isRaining) return;
 
-    // 1. Source : On prend TOUT le sprite (width/height de la texture originale)
     Rectangle source = { 0.0f, 0.0f, (float)_leafTexture.width, (float)_leafTexture.height };
 
-    // 2. Origine de rotation (coin haut gauche ici)
     Vector2 origin = { 0.0f, 0.0f };
 
     for (const auto &leaf : _rainLeaves) {
-        // On ne dessine que si c'est visible (petite optimisation)
         if (leaf.pos.y > -50 && leaf.pos.y < 1080) {
-            
-            // 3. Destination : On force la taille à 25x25 à la position de la feuille
             Rectangle dest = { leaf.pos.x, leaf.pos.y, 25.0f, 25.0f };
-            
-            // Utilisation de DrawTexturePro (Raylib standard) pour le scaling précis
             DrawTexturePro(_leafTexture, source, dest, origin, 0.0f, WHITE);
         }
     }
