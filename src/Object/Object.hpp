@@ -16,6 +16,7 @@ enum StatBuff
     MALUS_DROP,
     CLIENT_DROP,
     COPS_DROP,
+    AUTO_CLICK,
 };
 
 class Object
