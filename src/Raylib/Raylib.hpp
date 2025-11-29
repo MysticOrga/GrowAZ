@@ -37,6 +37,7 @@ class Raylib {
         bool isMouseButtonDown(int button) const;
         bool isMouseButtonReleased(int button) const;
         Vector2 getMousePosition() const;
+        bool isKeyPressed(int key) const;
 
         // Sound management
         void loadSound(const std::string &name, const std::string &fileName);

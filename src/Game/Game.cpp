@@ -10,7 +10,8 @@
 
 Game::Game()
     : _leafs(0), _cps(0), _clickCount(0), _timer(0), _cycleTimer(0), _cycleType(DAY), _shopArea{0, 0, 460, 1080},
-      _clickArea{460, 0, 1000, 1080}, _statArea{1460, 0, 460, 1080}
+        _clickArea{460, 0, 1000, 1080}, _statArea{1460, 0, 460, 1080}, _running(true), _gameState(GameState::MENU),
+        _playButton{760, 420, 400, 80}, _quitButton{760, 520, 400, 80}
 {
     Object obj1(StatBuff::LEAF_DROP, 0.01, "Leaf Booster", 100);
     Object obj2(StatBuff::TREE_SIZE, 0.02, "Tree Size", 500);
@@ -29,6 +30,10 @@ Game::Game()
     debt = 5000;
     _malus.push_back(m1);
     _sellButtonHovered = false;
+    _pauseButton = {_statArea.x + _statArea.width - 180, 20, 160, 40};
+    _pauseButtonHovered = false;
+    _pauseQuitButton = {(float)((1920 - 200) / 2), 560, 200, 60};
+    _pauseQuitButtonHovered = false;
 }
 
 Game::~Game()
@@ -37,7 +42,7 @@ Game::~Game()
 
 void Game::run()
 {
-    while (!_raylib->windowShouldClose())
+    while (_running && !_raylib->windowShouldClose())
     {
         handleEvents();
         update();
@@ -74,7 +79,40 @@ void Game::handleBuffing(const Object obj)
 void Game::handleEvents()
 {
     Vector2 mousePos = _raylib->getMousePosition();
+    _pauseButtonHovered = false;
+    _pauseQuitButtonHovered = false;
 
+    if (_gameState == GameState::MENU) {
+        if (CheckCollisionPointRec(mousePos, _playButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            _gameState = GameState::RUNNING;
+        if (CheckCollisionPointRec(mousePos, _quitButton) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        _running = false;
+        return;
+    }
+
+    if (_raylib->isKeyPressed(KEY_SPACE)) {
+        _gameState = (_gameState == GameState::PAUSED) ? GameState::RUNNING : GameState::PAUSED;
+    }
+
+    _pauseButtonHovered = CheckCollisionPointRec(mousePos, _pauseButton);
+    if (_pauseButtonHovered && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        _gameState = (_gameState == GameState::PAUSED) ? GameState::RUNNING : GameState::PAUSED;
+    }
+
+    if (_gameState == GameState::PAUSED) {
+        Rectangle resumeBtn = {(float)((1920 - 200) / 2), 480, 200, 60};
+        bool resumeHover = CheckCollisionPointRec(mousePos, resumeBtn);
+        if (resumeHover && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            _gameState = GameState::RUNNING;
+            return;
+        }
+
+        _pauseQuitButtonHovered = CheckCollisionPointRec(mousePos, _pauseQuitButton);
+        if (_pauseQuitButtonHovered && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            _running = false;
+        }
+        return;
+    }
     if (CheckCollisionPointRec(mousePos, _clickArea) && _raylib->isMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
         _cycleType == DAY)
     {
@@ -140,6 +178,8 @@ void Game::handleEvents()
 void Game::update()
 {
     float dt = _raylib->getFrameTime();
+    if (_gameState == GameState::MENU || _gameState == GameState::PAUSED)
+        return;
     _timer += dt;
     if (_timer >= 1.0f)
     {
@@ -221,6 +261,12 @@ void Game::draw()
     _raylib->beginDrawing();
     _raylib->clearBackground(RAYWHITE);
 
+    if (_gameState == GameState::MENU) {
+        drawMenu();
+        _raylib->endDrawing();
+        return;
+    }
+
     Color clickAreaColor;
     switch (_cycleType)
     {
@@ -241,6 +287,11 @@ void Game::draw()
     _raylib->drawRectangleRec(_clickArea, clickAreaColor);
     _raylib->drawRectangleRec(_shopArea, BEIGE);
     _raylib->drawRectangleRec(_statArea, RED);
+    Color pauseBtnColor = _pauseButtonHovered ? DARKGRAY : GRAY;
+    std::string pauseLabel = (_gameState == GameState::PAUSED) ? "Resume" : "Pause";
+    _raylib->drawRectangleRec(_pauseButton, pauseBtnColor);
+    int pauseTextWidth = _raylib->measureText(pauseLabel, 20);
+    _raylib->drawText(pauseLabel, _pauseButton.x + (_pauseButton.width - pauseTextWidth) / 2, _pauseButton.y + 10, 20, BLACK);
 
     _raylib->drawText("Shop", _shopArea.x + (_shopArea.width - _raylib->measureText("Shop", 40)) / 2, 20, 40, BLACK);
     Color textColor = (_cycleType == NIGHT) ? WHITE : BLACK;
@@ -261,6 +312,10 @@ void Game::draw()
     std::string sellText = "Vendre Feuille (100)";
     int textWidth = _raylib->measureText(sellText, 20);
     _raylib->drawText(sellText, sellButton.x + (sellButton.width - textWidth) / 2, sellButton.y + 15, 20, BLACK);
+
+    if (_gameState == GameState::PAUSED) {
+        drawPauseOverlay();
+    }
 
     _raylib->endDrawing();
 }
@@ -308,4 +363,47 @@ void Game::drawStats()
         _raylib->drawText(stat, _statArea.x + padding, yPos, fontSize, BLACK);
         yPos += fontSize + 10;
     }
+}
+
+void Game::drawPauseOverlay()
+{
+    DrawRectangle(0, 0, 1920, 1080, Fade(BLACK, 0.5f));
+    std::string pausedText = "PAUSE";
+    int fontSize = 80;
+    int textWidth = _raylib->measureText(pausedText, fontSize);
+    _raylib->drawText(pausedText, (1920 - textWidth) / 2, 400, fontSize, WHITE);
+
+    auto drawButton = [&](const Rectangle &rect, const std::string &label, bool hovered) {
+        Color buttonColor = hovered ? LIME : LIGHTGRAY;
+        _raylib->drawRectangleRec(rect, buttonColor);
+        int btnTextWidth = _raylib->measureText(label, 28);
+        _raylib->drawText(label, rect.x + (rect.width - btnTextWidth) / 2, rect.y + 16, 28, BLACK);
+    };
+
+    // Reuse pause button as "Reprendre"
+    Rectangle resumeBtn = {(float)((1920 - 200) / 2), 480, 200, 60};
+    bool resumeHover = CheckCollisionPointRec(_raylib->getMousePosition(), resumeBtn);
+    drawButton(resumeBtn, "Reprendre", resumeHover);
+    drawButton(_pauseQuitButton, "Quitter", _pauseQuitButtonHovered);
+}
+
+void Game::drawMenu()
+{
+    Vector2 mousePos = _raylib->getMousePosition();
+
+    std::string title = "GrosAZ";
+    int titleSize = 80;
+    int titlePosX = (1920 - _raylib->measureText(title, titleSize)) / 2;
+    _raylib->drawText(title, titlePosX, 180, titleSize, DARKGREEN);
+
+    auto drawButton = [&](const Rectangle &rect, const std::string &label) {
+        bool hovered = CheckCollisionPointRec(mousePos, rect);
+        Color buttonColor = hovered ? LIME : LIGHTGRAY;
+        _raylib->drawRectangleRec(rect, buttonColor);
+        int textWidth = _raylib->measureText(label, 30);
+        _raylib->drawText(label, rect.x + (rect.width - textWidth) / 2, rect.y + 25, 30, BLACK);
+    };
+
+    drawButton(_playButton, "Jouer");
+    drawButton(_quitButton, "Quitter");
 }

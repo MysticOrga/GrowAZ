@@ -113,6 +113,11 @@ bool Raylib::isMouseButtonReleased(int button) const
     return IsMouseButtonReleased(button);
 }
 
+bool Raylib::isKeyPressed(int key) const
+{
+    return IsKeyPressed(key);
+}
+
 Vector2 Raylib::getMousePosition() const
 {
     return GetMousePosition();
